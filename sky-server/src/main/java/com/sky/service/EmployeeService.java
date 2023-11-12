@@ -31,4 +31,15 @@ public interface EmployeeService {
      * @return
      */
     void forbideenOrEnable(Integer status, Long id);
+    /**
+     * 根据ID查询员工
+     * @param id
+     * @return
+     */
+    Employee getByID(Long id);
+    /**
+     * 修改员工信息
+     * @param employeeDTO
+     */
+    void update(EmployeeDTO employeeDTO);
 }

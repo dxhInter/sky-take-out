@@ -110,5 +110,29 @@ public class EmployeeController {
         employeeService.forbideenOrEnable(status,id);
         return Result.success();
     }
-
+    /**
+     * 根据ID查询员工
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    @ApiOperation(value = "根据ID查询员工", notes = "根据ID查询员工")
+    public Result<Employee> getByID(@PathVariable Long id){
+        Employee employee = employeeService.getByID(id);
+        return Result.success(employee);
+    }
+    /**
+     * 修改员工
+     *
+     * @param employeeDTO
+     * @return
+     */
+    @PutMapping
+    @ApiOperation(value = "修改员工", notes = "修改员工")
+    public Result update(@RequestBody EmployeeDTO employeeDTO){
+        log.info("修改员工：{}", employeeDTO);
+        employeeService.update(employeeDTO);
+        return Result.success();
+    }
 }
