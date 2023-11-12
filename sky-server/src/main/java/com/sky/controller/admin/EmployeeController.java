@@ -94,9 +94,21 @@ public class EmployeeController {
     @ApiOperation(value = "分页查询员工", notes = "分页查询员工")
     public Result<PageResult> pageQuery(EmployeePageQueryDTO employeePageQueryDTO){
         PageResult pageResult = employeeService.pageQuery(employeePageQueryDTO);
-
         return Result.success(pageResult);
-
+    }
+    /**
+     * 禁用或启用员工
+     *
+     * @param status
+     * @param id
+     * @return
+     */
+    @PostMapping("/status/{status}")
+    @ApiOperation(value = "禁用或启用员工", notes = "禁用或启用员工")
+    public Result forbideenOrEnable(@PathVariable Integer status,Long id){
+        log.info("禁用或启用员工：status={},id={}", status, id);
+        employeeService.forbideenOrEnable(status,id);
+        return Result.success();
     }
 
 }

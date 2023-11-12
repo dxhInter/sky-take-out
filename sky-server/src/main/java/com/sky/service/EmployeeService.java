@@ -19,6 +19,16 @@ public interface EmployeeService {
      * @param employeeDTO
      */
     void save(EmployeeDTO employeeDTO);
-
+    /**
+     * 分页查询
+     * @param employeePageQueryDTO
+     * @return
+     */
     PageResult pageQuery(EmployeePageQueryDTO employeePageQueryDTO);
+    /**
+     * 禁止或者启用员工账号
+     * @param id
+     * @return
+     */
+    void forbideenOrEnable(Integer status, Long id);
 }
