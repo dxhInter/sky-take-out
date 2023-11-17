@@ -31,7 +31,7 @@ public class CategoryController {
      * @return
      */
     @PostMapping
-    @ApiOperation(tags = "新增分类",value = "新增分类")
+    @ApiOperation("新增分类")
     public Result<String> save(@RequestBody CategoryDTO categoryDTO){
         categoryService.save(categoryDTO);
         return Result.success();
@@ -42,7 +42,7 @@ public class CategoryController {
      * @return
      */
     @GetMapping("/page")
-    @ApiOperation(tags = "分类分页查询",value = "分类分页查询")
+    @ApiOperation("分类分页查询")
     public Result<PageResult> page(CategoryPageQueryDTO categoryPageQueryDTO){
         PageResult pageResult = categoryService.pageQuery(categoryPageQueryDTO);
         return Result.success(pageResult);
@@ -54,7 +54,7 @@ public class CategoryController {
      * @return
      */
     @DeleteMapping
-    @ApiOperation(tags = "删除分类",value = "删除分类")
+    @ApiOperation("删除分类")
     public Result<String> deleteById(Long id){
         categoryService.deleteById(id);
         return Result.success();
@@ -65,7 +65,7 @@ public class CategoryController {
      * @return
      */
     @PutMapping
-    @ApiOperation(tags = "修改分类信息",value = "修改分类信息")
+    @ApiOperation("修改分类信息")
     public Result<String> update(@RequestBody CategoryDTO categoryDTO){
         categoryService.update(categoryDTO);
         return Result.success();
@@ -78,7 +78,7 @@ public class CategoryController {
      * @return
      */
     @PostMapping("/status/{status}")
-    @ApiOperation(tags = "启用、禁用分类",value = "启用、禁用分类")
+    @ApiOperation("启用、禁用分类")
     public Result<String> forbideenOrEnable(@PathVariable("status") Integer status, Long id){
         categoryService.forbideenOrEnable(status, id);
         return Result.success();
@@ -90,7 +90,7 @@ public class CategoryController {
      * @return
      */
     @GetMapping("/list")
-    @ApiOperation(tags = "根据类型查询分类",value = "根据类型查询分类")
+    @ApiOperation("根据类型查询分类")
     public Result<List<Category>> list(Integer type){
         List<Category> list = categoryService.list(type);
         return Result.success(list);
