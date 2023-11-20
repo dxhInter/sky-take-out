@@ -80,4 +80,8 @@ public interface OrderService {
      * @param ordersRejectionDTO
      */
     void rejection(OrdersRejectionDTO ordersRejectionDTO) throws Exception;
+
+    void delivery(Long id);
+
+    void complete(Long id);
 }
