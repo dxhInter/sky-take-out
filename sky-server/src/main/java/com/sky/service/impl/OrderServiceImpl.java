@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
+import com.sky.constant.RabbitmqConstant;
 import com.sky.context.BaseContext;
 import com.sky.dto.*;
 import com.sky.entity.*;
@@ -20,6 +21,7 @@ import com.sky.vo.OrderVO;
 import com.sky.websocket.WebSocketServer;
 import io.jsonwebtoken.lang.Collections;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,9 +48,10 @@ public class OrderServiceImpl implements OrderService {
     private ShoppingCartMapper shoppingCartMapper;
     @Autowired
     private UserMapper userMapper;
-
     @Autowired
     private WebSocketServer webSocketServer;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
     /**
      * 提交订单
      * @param ordersSubmitDTO
@@ -99,8 +102,13 @@ public class OrderServiceImpl implements OrderService {
         orderDetailMapper.insertBatch(orderDetailList);
 
         //delete shopping cart
-        shoppingCartMapper.deleteByUserId(userId);
-
+//        shoppingCartMapper.deleteByUserId(userId);
+        // 基于RabbitMQ的异步通知实现清空购物车
+        try {
+            rabbitTemplate.convertAndSend(RabbitmqConstant.CART_EXCHANGE_TOPIC, RabbitmqConstant.CART_CLEAR_ROUTING_KEY, userId);
+        }catch (Exception e){
+            log.error("清空用户{}购物车失败",userId,e);
+        }
         OrderSubmitVO orderSubmitVO = OrderSubmitVO.builder()
                 .id(orders.getId())
                 .orderTime(orders.getOrderTime())
@@ -125,8 +133,13 @@ public class OrderServiceImpl implements OrderService {
          User user = userMapper.getById(userId);
 
         // 直接调用paySuccess方法，模拟支付成功
-        paySuccess(ordersPaymentDTO.getOrderNumber());
-
+//        paySuccess(ordersPaymentDTO.getOrderNumber());
+        String orderNumber = ordersPaymentDTO.getOrderNumber();
+        try {
+            rabbitTemplate.convertAndSend(RabbitmqConstant.ORDER_PAY_EXCHANGE_TOPIC, RabbitmqConstant.ORDER_PAY_ROUTING_KEY, orderNumber);
+        }catch (Exception e){
+            log.error("订单支付失败",e);
+        }
         // 调用微信支付接口，生成预支付交易单
         // JSONObject jsonObject = weChatPayUtil.pay(
         // ordersPaymentDTO.getOrderNumber(), // 商户订单号

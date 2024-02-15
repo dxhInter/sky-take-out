@@ -16,6 +16,12 @@ spring:
     host: ${sky.redis.host}
     port: ${sky.redis.port}
     database: ${sky.redis.database}
+  rabbitmq:
+    host: ${sky.rabbitmq.host} # 你的虚拟机IP
+    port: ${sky.rabbitmq.port} # 端口
+    virtual-host: ${sky.rabbitmq.virtual-host} # 虚拟主机
+    username: ${sky.rabbitmq.username} # 用户名
+    password: ${sky.rabbitmq.password} # 密码
 
 mybatis:
   #mapper配置文件

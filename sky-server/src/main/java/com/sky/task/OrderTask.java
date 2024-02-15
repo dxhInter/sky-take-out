@@ -23,7 +23,7 @@ public class OrderTask {
     /**
      * 每分钟执行一次
      */
-    @Scheduled(cron = "0 * * * * ? ")//每分钟执行一次
+    @Scheduled(cron = "0 0 1 * * ? ")//每分钟执行一次
     public void processTimeOutOrder(){
         log.info("开始处理超时未支付订单:{}", LocalDateTime.now());
         LocalDateTime time = LocalDateTime.now().minusMinutes(15);
