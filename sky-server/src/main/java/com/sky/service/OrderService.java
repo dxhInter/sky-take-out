@@ -88,4 +88,10 @@ public interface OrderService {
     void cancel(OrdersCancelDTO ordersCancelDTO);
 
     void reminder(Long id);
+
+    /**
+     * 超时未支付取消订单
+     * @param id
+     */
+    void cancelByUnpaid(Long id) throws Exception;
 }

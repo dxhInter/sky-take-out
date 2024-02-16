@@ -12,6 +12,7 @@ import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
 import com.sky.mapper.*;
+import com.sky.message.MultiDelayMessage;
 import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.vo.OrderPaymentVO;
@@ -109,14 +110,21 @@ public class OrderServiceImpl implements OrderService {
         }catch (Exception e){
             log.error("清空用户{}购物车失败",userId,e);
         }
+        try {
+            // 发送延迟消息，用于检查订单是否支付
+            MultiDelayMessage<Long> msg = MultiDelayMessage.of(orders.getId(),
+                    10000L, 10000L, 10000L, 10000L, 10000L, 10000L, 20000L, 20000L, 20000L,
+                    60000L, 60000L, 60000L,600000L);
+            rabbitTemplate.convertAndSend(RabbitmqConstant.DELAY_EXCHANGE, RabbitmqConstant.DELAY_ORDER_ROUTING_KEY, msg);
+        } catch (Exception e) {
+            log.error("发送延迟消息失败", e);
+        }
         OrderSubmitVO orderSubmitVO = OrderSubmitVO.builder()
                 .id(orders.getId())
                 .orderTime(orders.getOrderTime())
                 .orderNumber(orders.getNumber())
                 .orderAmount(orders.getAmount())
                 .build();
-
-
         return orderSubmitVO;
     }
 
@@ -158,12 +166,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * 支付成功
+     * 支付成功, 保证消息处理的幂等性
      *
      * @param outTradeNo
      */
     public void paySuccess(String outTradeNo) {
         Orders ordersDB = orderMapper.getByNumber(outTradeNo);
+        // 业务状态判断, 保证消息处理的幂等性
+        if(ordersDB == null || ordersDB.getStatus() != Orders.PENDING_PAYMENT){
+            return;
+        }
         Orders orders = Orders.builder()
                 .id(ordersDB.getId())
                 .status(Orders.TO_BE_CONFIRMED)
@@ -433,5 +445,23 @@ public class OrderServiceImpl implements OrderService {
         map.put("content", "订单号"+ordersDB.getNumber());
         String json = JSON.toJSONString(map);
         webSocketServer.sendToAllClient(json);
+    }
+
+    /**
+     * 超时未支付订单取消
+     * @param id 订单id
+     */
+    @Override
+    public void cancelByUnpaid(Long id) throws Exception {
+        Orders ordersDB = orderMapper.getById(id);
+        if(ordersDB == null || !ordersDB.getStatus().equals(Orders.PENDING_PAYMENT)){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        Orders orders = new Orders();
+        orders.setId(ordersDB.getId());
+        orders.setStatus(Orders.CANCELLED);
+        orders.setCancelReason("超时未支付取消订单");
+        orders.setCancelTime(LocalDateTime.now());
+        orderMapper.update(orders);
     }
 }
