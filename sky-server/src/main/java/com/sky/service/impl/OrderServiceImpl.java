@@ -173,7 +173,7 @@ public class OrderServiceImpl implements OrderService {
     public void paySuccess(String outTradeNo) {
         Orders ordersDB = orderMapper.getByNumber(outTradeNo);
         // 业务状态判断, 保证消息处理的幂等性
-        if(ordersDB == null || ordersDB.getStatus() != Orders.PENDING_PAYMENT){
+        if(ordersDB == null || !ordersDB.getStatus().equals(Orders.PENDING_PAYMENT)){
             return;
         }
         Orders orders = Orders.builder()
@@ -454,6 +454,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void cancelByUnpaid(Long id) throws Exception {
         Orders ordersDB = orderMapper.getById(id);
+        // 业务状态判断
         if(ordersDB == null || !ordersDB.getStatus().equals(Orders.PENDING_PAYMENT)){
             throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
         }
