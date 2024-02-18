@@ -48,4 +48,6 @@ public interface CategoryMapper {
      * @return
      */
     List<Category> list(Integer type);
+
+    List<Category> listAll();
 }

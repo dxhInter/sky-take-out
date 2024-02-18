@@ -48,4 +48,8 @@
         </if>
         order by sort asc,create_time desc
     </select>
+
+    <select id="listAll" resultType="com.sky.entity.Category">
+        select * from category
+    </select>
 </mapper>

@@ -1,5 +1,7 @@
 package com.sky.controller.admin;
 
+import com.google.common.hash.BloomFilter;
+import com.google.common.hash.Funnels;
 import com.sky.dto.CategoryDTO;
 import com.sky.dto.CategoryPageQueryDTO;
 import com.sky.entity.Category;
@@ -11,6 +13,9 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -25,6 +30,15 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
+    @Resource
+    private BloomFilter<Long> categoryBloomFilter;
+
+    @PostConstruct
+    public void init(){
+        categoryService.listAll().forEach(category -> categoryBloomFilter.put(category.getId()));
+        log.info("布隆过滤器初始化完成");
+    }
+
     /**
      * 新增分类
      * @param categoryDTO
@@ -34,6 +48,9 @@ public class CategoryController {
     @ApiOperation("新增分类")
     public Result<String> save(@RequestBody CategoryDTO categoryDTO){
         categoryService.save(categoryDTO);
+//        log.info("布隆过滤器添加分类id:{}",categoryDTO.getId());
+//        categoryBloomFilter.put(categoryDTO.getId());
+        categoryService.listAll().forEach(category -> categoryBloomFilter.put(category.getId()));
         return Result.success();
     }
     /**
@@ -57,6 +74,7 @@ public class CategoryController {
     @ApiOperation("删除分类")
     public Result<String> deleteById(Long id){
         categoryService.deleteById(id);
+        log.info("布隆过滤器删除分类id:{}",id);
         return Result.success();
     }
     /**
