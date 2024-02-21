@@ -1,5 +1,6 @@
 package com.sky.controller.user;
 
+import com.sky.constant.RabbitmqConstant;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.result.PageResult;
@@ -10,7 +11,9 @@ import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +21,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user/order")
 @Api(tags = "用户端订单管理")
 @Slf4j
+@RequiredArgsConstructor
 public class OrderController {
     @Autowired
     private OrderService orderService;
+
+    private final RabbitTemplate rabbitTemplate;
 
     /**
      * 提交订单
@@ -30,6 +36,7 @@ public class OrderController {
     @PostMapping("/submit")
     @ApiOperation("提交订单")
     public Result<OrderSubmitVO> submit(@RequestBody OrdersSubmitDTO ordersSubmitDTO){
+        log.info("提交订单：{}", ordersSubmitDTO);
         OrderSubmitVO orderSubmitVO = orderService.submitOrder(ordersSubmitDTO);
         return Result.success(orderSubmitVO);
     }

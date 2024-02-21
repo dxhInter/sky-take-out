@@ -10,4 +10,7 @@ public class RabbitmqConstant {
     public static final String DELAY_EXCHANGE = "trade.delay.topic";
     public static final String DELAY_ORDER_QUEUE = "trade.order.delay.queue";
     public static final String DELAY_ORDER_ROUTING_KEY = "order.query";
+    public static final String CREATE_ORDER_EXCHANGE_TOPIC = "create.order.topic";
+    public static final String ORDER_QUEUE = "order.queue";
+    public static final String CREATE_ORDER_ROUTING_KEY = "create.order";
 }

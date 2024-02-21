@@ -62,45 +62,69 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderSubmitVO submitOrder(OrdersSubmitDTO ordersSubmitDTO) {
         //handld exception to of the business logic suah as address or cart is empty
+//        AddressBook addressBook = addressBookMapper.getById(ordersSubmitDTO.getAddressBookId());
+//        if(addressBook == null){
+//            //throw exception
+//            throw new AddressBookBusinessException(MessageConstant.ADDRESS_BOOK_IS_NULL);
+//        }
+//
+//        ShoppingCart shoppingCart = new ShoppingCart();
+//        Long userId = BaseContext.getCurrentId();
+//        shoppingCart.setUserId(userId);
+//        List<ShoppingCart> shoppingCartList = shoppingCartMapper.list(shoppingCart);
+//        if (shoppingCartList == null || shoppingCartList.size() == 0){
+//            //throw exception
+//            throw new AddressBookBusinessException(MessageConstant.SHOPPING_CART_IS_NULL);
+//        }
+//
+//        //insert an order into order table
+//        Orders orders = new Orders();
+//        BeanUtils.copyProperties(ordersSubmitDTO,orders);
+//        orders.setOrderTime(LocalDateTime.now());
+//        orders.setPayStatus(orders.UN_PAID);
+//        orders.setStatus(orders.PENDING_PAYMENT);
+//        orders.setNumber(String.valueOf(System.currentTimeMillis()));
+//        orders.setPhone(addressBook.getPhone());
+//        orders.setConsignee(addressBook.getConsignee());
+//        orders.setUserId(userId);
+//        orders.setAddress(addressBook.getProvinceName()+addressBook.getCityName()+addressBook.getDistrictName()+addressBook.getDetail());
+//
+//        orderMapper.insert(orders);
         AddressBook addressBook = addressBookMapper.getById(ordersSubmitDTO.getAddressBookId());
         if(addressBook == null){
             //throw exception
             throw new AddressBookBusinessException(MessageConstant.ADDRESS_BOOK_IS_NULL);
         }
-
-        ShoppingCart shoppingCart = new ShoppingCart();
         Long userId = BaseContext.getCurrentId();
-        shoppingCart.setUserId(userId);
-        List<ShoppingCart> shoppingCartList = shoppingCartMapper.list(shoppingCart);
-        if (shoppingCartList == null || shoppingCartList.size() == 0){
-            //throw exception
-            throw new AddressBookBusinessException(MessageConstant.SHOPPING_CART_IS_NULL);
-        }
-
-        //insert an order into order table
+        ShoppingCart shoppingCart = new ShoppingCart();
+//        List<ShoppingCart> shoppingCartList = shoppingCartMapper.list(shoppingCart);
+//        if (shoppingCartList == null || shoppingCartList.size() == 0){
+//            //throw exception
+//            throw new AddressBookBusinessException(MessageConstant.SHOPPING_CART_IS_NULL);
+//        }
         Orders orders = new Orders();
         BeanUtils.copyProperties(ordersSubmitDTO,orders);
-        orders.setOrderTime(LocalDateTime.now());
-        orders.setPayStatus(orders.UN_PAID);
-        orders.setStatus(orders.PENDING_PAYMENT);
-        orders.setNumber(String.valueOf(System.currentTimeMillis()));
-        orders.setPhone(addressBook.getPhone());
-        orders.setConsignee(addressBook.getConsignee());
-        orders.setUserId(userId);
-        orders.setAddress(addressBook.getProvinceName()+addressBook.getCityName()+addressBook.getDistrictName()+addressBook.getDetail());
-
-        orderMapper.insert(orders);
-
-        List<OrderDetail> orderDetailList = new ArrayList<>();
-        //insert order detail into order detail table
-        for (ShoppingCart cart:shoppingCartList){
-            OrderDetail orderDetail = new OrderDetail();
-            BeanUtils.copyProperties(cart,orderDetail);
-            orderDetail.setOrderId(orders.getId());
-            orderDetailList.add(orderDetail);
+        OrderCreateDTO orderCreateDTO = new OrderCreateDTO();
+        orderCreateDTO.setAddressBook(addressBook);
+        orderCreateDTO.setUserId(userId);
+        orderCreateDTO.setShoppingCart(shoppingCart);
+        orderCreateDTO.setOrders(orders);
+        try {
+            rabbitTemplate.convertAndSend(RabbitmqConstant.CREATE_ORDER_EXCHANGE_TOPIC, RabbitmqConstant.CREATE_ORDER_ROUTING_KEY, orderCreateDTO);
+        }catch (Exception e){
+            log.error("创建订单失败",e);
         }
 
-        orderDetailMapper.insertBatch(orderDetailList);
+//        List<OrderDetail> orderDetailList = new ArrayList<>();
+//        //insert order detail into order detail table
+//        for (ShoppingCart cart:shoppingCartList){
+//            OrderDetail orderDetail = new OrderDetail();
+//            BeanUtils.copyProperties(cart,orderDetail);
+//            orderDetail.setOrderId(orders.getId());
+//            orderDetailList.add(orderDetail);
+//        }
+//
+//        orderDetailMapper.insertBatch(orderDetailList);
 
         //delete shopping cart
 //        shoppingCartMapper.deleteByUserId(userId);
